@@ -64,7 +64,7 @@ a.inherit {
 .error:after {
     width: 25em;
     background: #FF937C;
-    content: "Use of undeclared identifier 'venue'";
+    content: "Use of undeclared identifier 'foo'";
 }
 .warning:after {
     width: 15em;
