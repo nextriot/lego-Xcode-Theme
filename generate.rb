@@ -13,6 +13,9 @@ class String
   def stem
     File.basename(self, File.extname(self))
   end
+  def x
+    gsub(' ', '\\ ').gsub('"', '\\"').gsub("'", "\\'")
+  end
 end
 
 class GitHub
@@ -53,15 +56,21 @@ GitHub.forks do |fork|
   end
 end
 
-
+mkf = File.open('Makefile', 'w')
+all = []
 json = Dir["**/*.dvtcolortheme"].sort_by{|fn| File.mtime(fn) }.reverse.map do |theme|
   user = theme.split('/').first
   name = theme.stem
   fn = "#{user}_#{name}"  # spaces in filenames suck
   dst = "#{out}/#{fn}.dvtcolortheme"
 
-  cp theme, dst
-  system "ruby ../parse-dvtcolortheme.rb \"#{dst}\" > \"#{out}/#{fn}.css\""
+  mkf.puts <<-end
+../out/#{fn.x}.dvtcolortheme.css: #{theme.x}
+\truby ../parse-dvtcolortheme.rb "$^" > "$@"
+
+end
+
+  all << "../out/#{fn.x}.dvtcolortheme.css"
 
   theme =~ %r{#{user}/(.*)}
   {
@@ -70,6 +79,11 @@ json = Dir["**/*.dvtcolortheme"].sort_by{|fn| File.mtime(fn) }.reverse.map do |t
     raw:  $1
   }
 end
+
+mkf.puts "../out/index.html:\n\tcp ../index.html $@"
+mkf.puts "../out/omgthemes.css:\n\tcp ../main.css $@"
+mkf.puts "all: #{all*' '} ../out/index.html ../out/omgthemes.css"
+mkf.close
 
 File.open("#{out}/themes.json", 'w') do |f|
   f.write(JSON.fast_generate(json))
