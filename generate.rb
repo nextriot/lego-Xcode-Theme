@@ -38,27 +38,56 @@ class GitHub
   end
 end
 
+def themes
+  d = File.expand_path(File.dirname(__FILE__))
+  Dir["**/*.dvtcolortheme"].sort_by{|fn| File.mtime(fn) }.reverse
+end
 
-########################################################################### main
+
+########################################################################### prep
 out = File.expand_path('out')
 mkdir 'forks' unless 'forks'.dir?
 mkdir out unless out.dir?
 
-cd 'forks'
+cd File.dirname(__FILE__)+'/forks'
 
-GitHub.forks do |fork|
-  if not fork.user.dir?
-    system "git clone #{fork.clone_url} #{fork.user}"
-  else
-    cd fork.user do
-      system "git pull"
-    end
+
+######################################################################### --json
+if ARGV[0] == '--json'
+  json = themes.map do |theme|
+    user = theme.split('/').first
+    name = theme.stem
+    theme =~ %r{#{user}/(.*)}
+    {
+      fork: user,
+      name: name,
+      raw:  $1
+    }
   end
+  puts JSON.fast_generate(json)
+  exit 0
 end
 
+
+######################################################################### --pull
+if ARGV[0] == '--pull'
+  GitHub.forks do |fork|
+    if not fork.user.dir?
+      system "git clone #{fork.clone_url} #{fork.user}"
+    else
+      cd fork.user do
+        system "git pull"
+      end
+    end
+  end
+  exit 0
+end
+
+
+########################################################################### main
 mkf = File.open('Makefile', 'w')
 all = []
-json = Dir["**/*.dvtcolortheme"].sort_by{|fn| File.mtime(fn) }.reverse.map do |theme|
+themes.map do |theme|
   user = theme.split('/').first
   name = theme.stem
   fn = "#{user}_#{name}"  # spaces in filenames suck
@@ -71,20 +100,12 @@ json = Dir["**/*.dvtcolortheme"].sort_by{|fn| File.mtime(fn) }.reverse.map do |t
 end
 
   all << "../out/#{fn.x}.dvtcolortheme.css"
-
-  theme =~ %r{#{user}/(.*)}
-  {
-    fork: user,
-    name: name,
-    raw:  $1
-  }
 end
 
+all = all.join' '
+
+mkf.puts "../out/themes.json: #{all}\n\truby ../generate.rb --json > $@"
 mkf.puts "../out/index.html:\n\tcp ../index.html $@"
 mkf.puts "../out/omgthemes.css:\n\tcp ../main.css $@"
-mkf.puts "all: #{all*' '} ../out/index.html ../out/omgthemes.css"
+mkf.puts "all: #{all} ../out/index.html ../out/omgthemes.css ../out/themes.json"
 mkf.close
-
-File.open("#{out}/themes.json", 'w') do |f|
-  f.write(JSON.fast_generate(json))
-end
