@@ -104,7 +104,7 @@ end
 
 all = all.join' '
 
-mkf.puts "../out/themes.json: #{all}\n\truby ../generate.rb --json > $@"
+mkf.puts "../out/themes.json: #{all}\n\truby ../generate.rb --json > $@\n\tcd .. && /usr/local/bin/aws s3 sync out s3://omgthemes.net"
 mkf.puts "../out/index.html:\n\tcp ../index.html $@"
 mkf.puts "../out/omgthemes.css:\n\tcp ../main.css $@"
 mkf.puts "all: #{all} ../out/index.html ../out/omgthemes.css ../out/themes.json"
