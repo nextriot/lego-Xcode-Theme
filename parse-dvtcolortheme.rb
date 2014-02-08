@@ -1,6 +1,10 @@
 #!/usr/bin/ruby
 require 'plist'
 
+fork = ARGV.first.split('/').first
+theme = ARGV.first.split('/').last.gsub(/\.dvtcolortheme$/, '').gsub(/[%() ]/, '')
+
+
 #TODO select color, etc.
 
 %w{
@@ -51,17 +55,15 @@ class String
   end
 end
 
-theme_name = File.basename(ARGV.first, '.dvtcolortheme').gsub(/[%() ]/, '')
-
 plist = Plist::parse_xml(ARGV.first)
 bg = plist['DVTSourceTextBackground']
 puts <<-EOS
-.#{theme_name} {
+.#{fork}.#{theme} {
   background: #{bg.rgba};
   color: #{plist['DVTSourceTextSyntaxColors']['xcode.syntax.plain'].rgba};
   border-color: #{bg.border};
 }
-.#{theme_name} code i::selection, .#{theme_name} code::selection {
+.#{fork}.#{theme} code i::selection, .#{fork}.#{theme} code::selection {
   background: #{plist['DVTSourceTextSelectionColor'].rgba};
 }
 EOS
@@ -84,5 +86,5 @@ plist.fetch('DVTSourceTextSyntaxColors').each do |key, value|
   else
     nil
   end
-  puts ".#{theme_name} .#{key} { color: #{value.rgba} }" if key
+  puts ".#{fork}.#{theme} .#{key} { color: #{value.rgba} }" if key
 end

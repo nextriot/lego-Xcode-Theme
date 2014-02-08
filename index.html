@@ -10,7 +10,7 @@
     <footer>To contribute a theme, simply <a href='https://github.com/mxcl/omgthemes'>fork</a>, push and wait five minutes (we scan the <em>entire</em> fork network).</footer>
   </body>
   <script type="text/template" class="theme">
-    <pre class="<%- css %>">
+    <pre class="<%- css %> <%- fork %>">
       <code>
         <i class='comment'>// <%- name %></i>
         <i class='comment'>// <a class='inherit' href='<%- url %>'><%- url %></a></i>
@@ -59,12 +59,11 @@
 
     $.get('themes.json').done(function(themes){
       _(themes).each(function(theme){
-        var name = theme.fork+'_'+theme.name;
-        var css = name+'.css';
+        var css = theme.fork+'_'+theme.name+'.dvtcolortheme.css';
 
         theme.url = 'https://github.com/' + theme.fork + '/omgthemes/blob/master/' + encodeURI(theme.raw);
         theme.raw = 'https://raw.github.com/' + theme.fork + '/omgthemes/master/' + encodeURI(theme.raw);
-        theme.css = name.replace(/[%() ]/g, '');  // need a valid selector name
+        theme.css = theme.name.replace(/[%() ]/g, '');  // need a valid selector name
         theme.camelname = theme.name.replace(/[^a-zA-Z0-9_]/g, '');
 
         $('<link>').appendTo($('head')).attr({type: 'text/css', rel: 'stylesheet'}).attr('href', css);
