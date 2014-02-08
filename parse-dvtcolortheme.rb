@@ -1,8 +1,16 @@
 #!/usr/bin/ruby
 require 'plist'
 
-fork = ARGV.first.split('/').first
-theme = ARGV.first.split('/').last.gsub(/\.dvtcolortheme$/, '').gsub(/[%() ]/, '')
+class String
+  def css_classname
+    # since class names can't start with underscores or numbers it ends up
+    # being easier and more consistent to just start everything with omg_
+    "omg_" + gsub(/[%() ]/, '')
+  end
+end
+
+fork = ARGV.first.split('/').first.css_classname
+theme = ARGV.first.split('/').last.gsub(/\.dvtcolortheme$/, '').css_classname
 
 
 #TODO select color, etc.
